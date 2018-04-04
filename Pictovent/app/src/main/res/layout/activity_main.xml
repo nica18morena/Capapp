@@ -7,7 +7,33 @@
     android:layout_height="match_parent"
     tools:context="com.example.jessi.pictovent.MainActivity">
 
-    <ImageView
+    <TextureView
+        android:id="@+id/texture"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/imgBtn_takepicture"
+        android:layout_alignParentTop="true"/>
+
+    <ImageButton
+        android:id="@+id/imgBtn_takepicture"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:src="@drawable/ic_camera_black_24dp" />
+ <!-- Regular button
+    <Button
+        android:id="@+id/btn_takepicture"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginLeft="40dp"
+        android:text="@string/take_picture" />
+        -->
+<!--Original UI structure-->
+    <!--<ImageView
         android:id="@+id/image_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -25,6 +51,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/ocr_text"
-        android:layout_below="@id/snap_image"/>
+        android:layout_below="@id/snap_image"/>-->
 
 </RelativeLayout>

@@ -129,20 +129,20 @@ public class Scheduler {
             //start = calendar.getTimeInMillis();
         }
         ContentValues values = new ContentValues();
-        values.put(CalendarContract.Events.DTSTART, start);
-        values.put(CalendarContract.Events.DTEND, start);
+        values.put(CalendarContract.Events.DTSTART, calendar.getTimeInMillis());//testing if time is issue- og value: start
+        values.put(CalendarContract.Events.DTEND, calendar.getTimeInMillis());
         //values.put(CalendarContract.Events.RRULE, _freq);
         values.put(CalendarContract.Events.TITLE, "Event");
-        //values.put(CalendarContract.Events.EVENT_LOCATION, " ");
+        values.put(CalendarContract.Events.EVENT_LOCATION, " ");
         values.put(CalendarContract.Events.CALENDAR_ID, CAL_ID);
         values.put(CalendarContract.Events.EVENT_TIMEZONE, "America/Los_Angeles");
-        //values.put(CalendarContract.Events.DESCRIPTION, " ");
+        values.put(CalendarContract.Events.DESCRIPTION, " ");
         values.put(CalendarContract.Events.ACCESS_LEVEL, CalendarContract.Events.ACCESS_PRIVATE);
-        //values.put(CalendarContract.Events.SELF_ATTENDEE_STATUS, CalendarContract.Events.STATUS_CONFIRMED);
+        values.put(CalendarContract.Events.SELF_ATTENDEE_STATUS, CalendarContract.Events.STATUS_CONFIRMED);
         //values.put(CalendarContract.Events.ALL_DAY, 1);
-        //values.put(CalendarContract.Events.ORGANIZER, "Pictoevent");
-        //values.put(CalendarContract.Events.GUESTS_CAN_INVITE_OTHERS, 1);
-        //values.put(CalendarContract.Events.AVAILABILITY, CalendarContract.Events.AVAILABILITY_BUSY);
+        values.put(CalendarContract.Events.ORGANIZER, "Pictoevent");
+        values.put(CalendarContract.Events.GUESTS_CAN_INVITE_OTHERS, 1);
+        values.put(CalendarContract.Events.AVAILABILITY, CalendarContract.Events.AVAILABILITY_BUSY);
         //values.put(CalendarContract.Calendars.SYNC_EVENTS, 1);
         //values.put(CalendarContract.Calendars.ACCOUNT_NAME, ACCOUNT_NAME);
         //values.put(CalendarContract.Calendars.ACCOUNT_TYPE,CalendarContract.ACCOUNT_TYPE_LOCAL);

@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Capapp</string>
+    <string name="take_pic">Take picture</string>
+    <string name="close">Close</string>
 </resources>

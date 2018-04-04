@@ -3,4 +3,6 @@
     <string name="snap_button">Take snap</string>
     <string name="ocr_text">Ocr results will appear here</string>
     <string name="image">Image</string>
+
+    <string name="take_picture">Take picture</string>
 </resources>
