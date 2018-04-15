@@ -38,6 +38,15 @@ public class Scheduler {
      private static Uri EVENT_URI = null;
      private static Scheduler mInstance = null;
      private static ContentResolver contentResolver;
+     /**Date variables for setting calendar time*/
+     private static int hourOfDay;
+    private static int mintues;
+    private static int seconds;
+    private static int dayOfMonth;
+    private static int calMonth;
+    private static int calYear;
+    private static int amPm;
+//private static CalDictionary dictionary;
 
      public Scheduler(Context ctx){
          PROJECTION_ID_INDEX = 0;
@@ -115,11 +124,21 @@ public class Scheduler {
 
         //Calendar calendar = new GregorianCalendar(2017, 3, 14);
         Calendar calendar = new GregorianCalendar();
-        calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
+        //calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
+        calendar.setTimeZone(TimeZone.getDefault());// try to get default timezone
+       /*//Try setting with time info
         calendar.set(Calendar.HOUR, 0);
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.MILLISECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);*/
+
+       calendar.set(Calendar.YEAR, calYear);
+       calendar.set(Calendar.MONTH, calMonth);
+       calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+        calendar.set(Calendar.HOUR, hourOfDay);
+        calendar.set(Calendar.MINUTE, mintues);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.AM_PM, amPm);
         long start;
         if(_dStart.isEmpty()){
              start  = calendar.getTimeInMillis();
@@ -128,6 +147,7 @@ public class Scheduler {
              start = Long.valueOf(_dStart);
             //start = calendar.getTimeInMillis();
         }
+        Log.i(TAG, "Default string value is: " + start + " Created value is: " + _dStart);
         ContentValues values = new ContentValues();
         values.put(CalendarContract.Events.DTSTART, calendar.getTimeInMillis());//testing if time is issue- og value: start
         values.put(CalendarContract.Events.DTEND, calendar.getTimeInMillis());
@@ -222,7 +242,8 @@ public class Scheduler {
         String formattedDate = "";
         String formattedMonth = "";
         String formattedDay = "";
-
+//Set the dictionary?
+        //dictionary = _dictionary;
         //Format date- YYYYMMDD
         String date = _dictionary.getStart_date();
         if(date != null){
@@ -238,89 +259,92 @@ public class Scheduler {
         //TODO: if any of these values are null- default today's date?
 
         if(month != null && day != null && year != null){
-            switch(month) {
+            switch(month.toLowerCase()) {
                 case "january":
                 case "jan":
-                    formattedMonth = "01";
+                    formattedMonth = "00";
                     break;
                 case "february":
                 case "feb":
-                    formattedMonth = "02";
+                    formattedMonth = "01";
                     break;
                 case "march":
                 case "mar":
-                    formattedMonth = "03";
+                    formattedMonth = "02";
                     break;
                 case "april":
                 case "apr":
-                    formattedMonth = "04";
+                    formattedMonth = "03";
                     break;
                 case "may":
-                    formattedMonth = "05";
+                    formattedMonth = "04";
                     break;
                 case "june":
                 case "jun":
-                    formattedMonth = "06";
+                    formattedMonth = "05";
                     break;
                 case "july":
                 case "jul":
-                    formattedMonth = "07";
+                    formattedMonth = "06";
                     break;
                 case "august":
                 case "aug":
-                    formattedMonth = "08";
+                    formattedMonth = "07";
                     break;
                 case "september":
                 case "sep":
-                    formattedMonth = "09";
+                    formattedMonth = "08";
                     break;
                 case "october":
                 case "oct":
-                    formattedMonth = "10";
+                    formattedMonth = "09";
                     break;
                 case "november":
                 case "nov":
-                    formattedMonth = "11";
+                    formattedMonth = "10";
                     break;
                 case "december":
                 case "dec":
-                    formattedMonth = "12";
+                    formattedMonth = "11";
                     break;
             }
 
             switch(day){
                 case "1":
-                    formattedDate = "01";
+                    formattedDay = "01";
                     break;
                 case "2":
-                    formattedDate = "02";
+                    formattedDay = "02";
                     break;
                 case "3":
-                    formattedDate = "03";
+                    formattedDay = "03";
                     break;
                 case "4":
-                    formattedDate = "04";
+                    formattedDay = "04";
                     break;
                 case "5":
-                    formattedDate = "05";
+                    formattedDay = "05";
                     break;
                 case "6":
-                    formattedDate = "06";
+                    formattedDay = "06";
                     break;
                 case "7":
-                    formattedDate = "07";
+                    formattedDay = "07";
                     break;
                 case "8":
-                    formattedDate = "08";
+                    formattedDay = "08";
                     break;
                 case "9":
-                    formattedDate = "09";
+                    formattedDay = "09";
                     break;
                 default:
-                    formattedDate = day;
+                    formattedDay = day;
                     break;
             }
-
+            Log.i(TAG,String.format("%s, %s, %s", year, formattedMonth, formattedDay));
+            calYear = Integer.parseInt(year);
+            calMonth = Integer.parseInt(formattedMonth);//formatted month isnull here
+            dayOfMonth = Integer.parseInt(formattedDay);
             formattedDate = year + formattedMonth + formattedDay;
         }
         else{
@@ -335,6 +359,11 @@ public class Scheduler {
         if(time != null){
             String[] ampm = time.split("[^a-zA-Z]");
             String[] timeTokens = time.split("[:a-zA-Z]");
+            int intHrs = Integer.parseInt(timeTokens[0]);
+
+            int intMin = Integer.parseInt(timeTokens[1]);
+            mintues = intMin;
+            hourOfDay = intHrs;
 
             if(ampm.length > 0 ){
                 switch(ampm[ampm.length - 1]){
@@ -342,13 +371,18 @@ public class Scheduler {
                     case "AM":
                     case "Am":
                         formattedDateTime = String.format("%sT%s%s00",formattedDate, timeTokens[0], timeTokens[1]);
+                        amPm = Calendar.AM;
+                        //hourOfDay = intHrs;moved above
                         break;
                     case "pm":
                     case "PM":
                     case "Pm":
-                        int intHrs = Integer.parseInt(timeTokens[0]);
+                        //int intHrs = Integer.parseInt(timeTokens[0]);// This was originally here, added above is new
                         //formattedDateTime = String.format("%sT%d%s00",formattedDate, (intHrs + 12), timeTokens[1]);
                         formattedDateTime = String.format("%s%d%s00",formattedDate, (intHrs + 12), timeTokens[1]);
+                        amPm = Calendar.PM;
+                        //hourOfDay = intHrs + 12;not needed here, moved above, using am_pm field to determine if am pm
+                        break;
                 }
             }
             else{
