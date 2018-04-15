@@ -11,16 +11,24 @@
         android:id="@+id/texture"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/imgBtn_takepicture"
-        android:layout_alignParentTop="true"/>
+        android:layout_alignParentTop="true" />
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab_takepicture"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|bottom"
+        android:src="@drawable/ic_photo_camera_black_24dp"
+        android:layout_margin="16dp" />
 
-    <ImageButton
+ <!-- Image button
+        <ImageButton
         android:id="@+id/imgBtn_takepicture"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:src="@drawable/ic_camera_black_24dp" />
+        android:src="@drawable/ic_photo_camera_black_24dp" />
+        -->
  <!-- Regular button
     <Button
         android:id="@+id/btn_takepicture"

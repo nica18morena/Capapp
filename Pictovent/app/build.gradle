@@ -1,8 +1,8 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion "26.0.2"
+    compileSdkVersion 27//25
+    buildToolsVersion "27.0.1"//"26.0.2"
     defaultConfig {
         applicationId "com.example.jessi.pictovent"
         minSdkVersion 21 //19
@@ -25,10 +25,12 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
     //compile 'com.android.support:appcompat-v7:25.1.1' -- Older version/ original version
-    compile 'com.android.support:appcompat-v7:25.4.0'
+    compile 'com.android.support:appcompat-v7:27.0.0'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
+    compile 'com.android.support:design:27.1.1'
     //Add Tesseract dependencies
     compile 'com.rmtheis:tess-two:8.0.0'
     testCompile 'junit:junit:4.12'
     compile project(':openCVLibrary340')
+
 }
