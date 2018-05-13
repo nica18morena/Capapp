@@ -38,6 +38,17 @@ import java.io.InputStream;
 import java.util.ArrayList;
 
 import static android.content.ContentValues.TAG;
+import static org.opencv.imgproc.Imgproc.COLOR_BGR2GRAY;
+import static org.opencv.imgproc.Imgproc.GaussianBlur;
+import static org.opencv.imgproc.Imgproc.INTER_CUBIC;
+import static org.opencv.imgproc.Imgproc.MORPH_RECT;
+import static org.opencv.imgproc.Imgproc.THRESH_BINARY;
+import static org.opencv.imgproc.Imgproc.cvtColor;
+import static org.opencv.imgproc.Imgproc.dilate;
+import static org.opencv.imgproc.Imgproc.erode;
+import static org.opencv.imgproc.Imgproc.getStructuringElement;
+import static org.opencv.imgproc.Imgproc.resize;
+import static org.opencv.imgproc.Imgproc.threshold;
 
 /**
  * Created by jessi on 1/13/2018.
@@ -46,7 +57,7 @@ import static android.content.ContentValues.TAG;
 public class ImagePreProcess {
 
     private static int scaleFactor;
-    private static final String FILE_LOCATION = Environment.getExternalStorageDirectory().toString() + "/Pictovent/";
+    private static final String FILE_LOCATION = Environment.getExternalStorageDirectory().toString() + "/Pictoevent/";
     private long CAL_ID;
     private Scheduler scheduler;
     Mat src, srcOrig;
@@ -83,7 +94,7 @@ public class ImagePreProcess {
             //End TESS*/
 
                 /*Equalize the image histogram*/
-          Mat dst = new Mat();
+         /* Mat dst = new Mat();
             //Convert to grey
             Imgproc.cvtColor(src, src, Imgproc.COLOR_BGR2GRAY);
             //Save grey image
@@ -96,29 +107,39 @@ public class ImagePreProcess {
             //Save histo'ed image
             Bitmap bitmap_histo = Bitmap.createBitmap(dst.cols(), dst.rows(), Bitmap.Config.ARGB_8888);
             Utils.matToBitmap(dst, bitmap_histo);
-            storeImage(bitmap_histo, "image_histo.jpg");
+            storeImage(bitmap_histo, "image_histo.jpg");*/
 
                 /*Use adaptive threshold to create binary image*/
-           Mat bin = new Mat();
+         /*  Mat bin = new Mat();
             Imgproc.adaptiveThreshold(dst, bin, 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C,
                     Imgproc.THRESH_BINARY, 15, 40);
             //Save binary image
             Bitmap bitmap_binary = Bitmap.createBitmap(bin.cols(), bin.rows(), Bitmap.Config.ARGB_8888);
             Utils.matToBitmap(bin, bitmap_binary);
-            storeImage(bitmap_binary, "image_binary.jpg");
+            storeImage(bitmap_binary, "image_binary.jpg");*/
             /*Fix image warp*/
             //TODO: Algorithm for image warp
 
                 /*OCR steps*/
+            //Adding the following to bypass the image pre-processing
+            // for testing
+            fileUri = getCaptureImageOutputUri(context);
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inJustDecodeBounds = false;
+            options.inSampleSize = 6;
+            Bitmap bitmap = BitmapFactory.decodeFile(fileUri.getPath(), options);//End of new code
             OCRProcessing mOcr = new OCRProcessing(context);
             mOcr.prepareTesseract();
 
-            String text = mOcr.extractText(bitmap_binary);
+            String text = mOcr.extractText(cleanImage(bitmap));
+           //String text = mOcr.extractText(bitmap_binary);
             //Temp code to continue programming and testing
-            String temp_text = "Friday, January 26, 2018 2:00pm (30 minutes)";
-
+            //String temp_text = "Friday, January 26, 2018 2:00pm (30 minutes)";
+            //Clean text
+            CustomOCRProcessing processText = new CustomOCRProcessing(text);
+            String cleanText = processText.getCleanedString();
             //Call CalDictionary class
-            CalDictionary dictionary = new CalDictionary(temp_text);
+            CalDictionary dictionary = new CalDictionary(cleanText);
             dictionary.parseText();
             //Call to create an event
             this.checkCalendars();
@@ -186,6 +207,65 @@ public class ImagePreProcess {
             }
         }
 
+        private Bitmap cleanImage(Bitmap image){
+            int thresholdMin = 100;//85;
+            int thresholdMax = 255;
+            int sourceWidth = 1366;
+            //Covert to grey
+            //dialate/ errode
+            //Gaussian blur
+            //Threshold
+            // Convert the image to GRAY
+            Mat origin = new Mat();
+            Utils.bitmapToMat(image, origin);
+            // Resize origin image
+            Size imgSize = origin.size();
+            resize(origin, origin, new Size(sourceWidth, imgSize.height * sourceWidth / imgSize.width), 1.0, 1.0,
+                    INTER_CUBIC);
+            Mat originGray = new Mat();
+            cvtColor(origin, originGray, COLOR_BGR2GRAY);
+            //Save grey image
+            Bitmap bitmap_grey = Bitmap.createBitmap(origin.cols(), origin.rows(), Bitmap.Config.ARGB_8888);
+            Utils.matToBitmap(originGray, bitmap_grey);
+            storeImage(bitmap_grey, "image_grey.jpg");
+
+            //Apply histogram Equalization
+            Imgproc.equalizeHist(originGray, originGray);
+            //Save histo'ed image
+            Bitmap bitmap_histo = Bitmap.createBitmap(origin.cols(), origin.rows(), Bitmap.Config.ARGB_8888);
+            Utils.matToBitmap(originGray, bitmap_histo);
+            storeImage(bitmap_histo, "image_histo.jpg");
+
+            // Process noisy, blur, and threshold to get black-white image
+            //originGray = processNoisy(originGray);
+            Mat element1 = getStructuringElement(MORPH_RECT, new Size(2, 2), new Point(1, 1));
+            Mat element2 = getStructuringElement(MORPH_RECT, new Size(2, 2), new Point(1, 1));
+            dilate(originGray, originGray, element1);
+            Bitmap bitmap_dilate = Bitmap.createBitmap(origin.cols(), origin.rows(), Bitmap.Config.ARGB_8888);
+            Utils.matToBitmap(originGray, bitmap_dilate);
+            storeImage(bitmap_dilate, "image_dilate.jpg");
+
+            erode(originGray, originGray, element2);
+            Bitmap bitmap_erode = Bitmap.createBitmap(origin.cols(), origin.rows(), Bitmap.Config.ARGB_8888);
+            Utils.matToBitmap(originGray, bitmap_erode);
+            storeImage(bitmap_erode, "image_erode.jpg");
+
+            GaussianBlur(originGray, originGray, new Size(3, 3), 0);
+            // The thresold value will be used here
+            threshold(originGray, originGray, thresholdMin, thresholdMax, THRESH_BINARY);
+
+            Bitmap bitmap_thresh = Bitmap.createBitmap(origin.cols(), origin.rows(), Bitmap.Config.ARGB_8888);
+            Utils.matToBitmap(originGray, bitmap_thresh);
+            storeImage(bitmap_thresh, "image_thresh.jpg");
+            //Return the image to Bitmap
+            int newWidth = originGray.width()/2;
+            resize(originGray, originGray, new Size(newWidth,  (originGray.height() * newWidth) / originGray.width() ));
+
+            Bitmap bitmap = Bitmap.createBitmap(originGray.width(), originGray.height(), Bitmap.Config.ARGB_8888);
+            Utils.matToBitmap(originGray, bitmap);
+            return bitmap;
+        }
+
         private void checkCalendars() {
             Cursor calCursor;
             String[] projection =
@@ -228,7 +308,6 @@ public class ImagePreProcess {
         }
     }
 
-
     private Uri getCaptureImageOutputUri(@NonNull Context context) {
         Uri outputFileUri = null;
         File getImage = Environment.getExternalStorageDirectory();
@@ -239,22 +318,23 @@ public class ImagePreProcess {
     }
 
     public void reformatImage() {
-        try {
+        /*try {
             fileUri = getCaptureImageOutputUri(context);
             Log.d(TAG, fileUri.toString());
             final InputStream imageStream = context.getContentResolver().openInputStream(fileUri);
-            /*final Bitmap */selectedImage = BitmapFactory.decodeStream(imageStream);
+            //final Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
+            selectedImage = BitmapFactory.decodeStream(imageStream);
             srcOrig = new Mat(selectedImage.getHeight(), selectedImage.getWidth(), CvType.CV_8UC4);
             src = new Mat();
             Utils.bitmapToMat(selectedImage, srcOrig);
 
             scaleFactor = calcScaleFactor(srcOrig.rows(), srcOrig.cols());
-            Imgproc.resize(srcOrig, src, new Size(srcOrig.cols() / scaleFactor, srcOrig.rows() / scaleFactor));
+            Imgproc.resize(srcOrig, src, new Size(srcOrig.cols() / scaleFactor, srcOrig.rows() / scaleFactor));*/
 
             new GetPage().execute();
-        } catch (FileNotFoundException e) {
+       /* } catch (FileNotFoundException e) {
             e.printStackTrace();
-        }
+        }*/
     }
     private void ocrBitmap(){
         // _path = path to the image to be OCRed

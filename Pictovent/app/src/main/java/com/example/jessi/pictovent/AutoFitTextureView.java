@@ -17,6 +17,7 @@
 
 package com.example.jessi.pictovent;
 
+import android.graphics.Canvas;
 import android.view.TextureView;
 import android.content.Context;
 import android.util.AttributeSet;
@@ -74,5 +75,4 @@ public class AutoFitTextureView extends TextureView {
             }
         }
     }
-
 }

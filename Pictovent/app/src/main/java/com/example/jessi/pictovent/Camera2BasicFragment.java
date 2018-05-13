@@ -26,9 +26,13 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.graphics.Point;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
@@ -85,6 +89,7 @@ import java.util.concurrent.TimeUnit;
 public class Camera2BasicFragment extends Fragment
         implements View.OnClickListener, ActivityCompat.OnRequestPermissionsResultCallback {
 
+    public static DrawingView drawingView;
     public static boolean imageCaptured = false;
     /**
      * Conversion from screen rotation to JPEG orientation.
@@ -443,7 +448,11 @@ public class Camera2BasicFragment extends Fragment
         view.findViewById(R.id.fab_takepicture).setOnClickListener(this);
         //view.findViewById(R.id.info).setOnClickListener(this);
         mTextureView = (AutoFitTextureView) view.findViewById(R.id.texture);
+       /* drawingView = new DrawingView(getActivity());
+        ViewGroup.LayoutParams layoutParamsDrawing = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        getActivity().addContentView(drawingView, layoutParamsDrawing);*/
     }
+
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
@@ -876,7 +885,8 @@ public class Camera2BasicFragment extends Fragment
         // We have to take that into account and rotate JPEG properly.
         // For devices with orientation of 90, we simply return our mapping from ORIENTATIONS.
         // For devices with orientation of 270, we need to rotate the JPEG 180 degrees.
-        return (ORIENTATIONS.get(rotation) + mSensorOrientation + 270) % 360;
+        int orientation = (ORIENTATIONS.get(rotation) + mSensorOrientation + 270) % 360;
+        return orientation;
     }
 
     /**
@@ -1046,6 +1056,33 @@ public class Camera2BasicFragment extends Fragment
                                 }
                             })
                     .create();
+        }
+    }
+    private class DrawingView extends View{
+
+        Paint drawingPaint;
+        List<Rect> lstRectArea;
+
+        public DrawingView(Context context){
+            super(context);
+            drawingPaint = new Paint();
+            drawingPaint.setColor(Color.GREEN);
+            drawingPaint.setStyle(Paint.Style.STROKE);
+            drawingPaint.setStrokeWidth(5);
+        }
+
+        public void setListRect(List<Rect> lstRect) {
+            this.lstRectArea = lstRect;
+        }
+
+        @Override
+        protected void onDraw(Canvas canvas) {
+            if (lstRectArea != null && lstRectArea.size() > 0) {
+                for (Rect rect : lstRectArea) {
+                    canvas.drawRect(rect.left * 1.0F, rect.top * 1.0F, rect.right * 1.0F, rect.bottom * 1.0F,
+                            drawingPaint);
+                }
+            }
         }
     }
 

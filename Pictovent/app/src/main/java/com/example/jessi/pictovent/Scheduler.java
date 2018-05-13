@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.provider.CalendarContract;
 import android.util.Log;
 
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -147,7 +148,7 @@ public class Scheduler {
              start = Long.valueOf(_dStart);
             //start = calendar.getTimeInMillis();
         }
-        Log.i(TAG, "Default string value is: " + start + " Created value is: " + _dStart);
+        Log.d(TAG, "Default string value is: " + start + " Created value is: " + _dStart);
         ContentValues values = new ContentValues();
         values.put(CalendarContract.Events.DTSTART, calendar.getTimeInMillis());//testing if time is issue- og value: start
         values.put(CalendarContract.Events.DTEND, calendar.getTimeInMillis());
@@ -257,9 +258,12 @@ public class Scheduler {
         String day = _dictionary.getStart_day();
         String year = _dictionary.getYear();
         //TODO: if any of these values are null- default today's date?
-
-        if(month != null && day != null && year != null){
-            switch(month.toLowerCase()) {
+        DateFormat defaultFormat = new SimpleDateFormat("yyyy/MM/dd");
+        Calendar cal = Calendar.getInstance();
+        int fmonth, fday, fyear;
+       // if(month != null && day != null && year != null){
+        if(month != null) {
+            switch (month.toLowerCase()) {
                 case "january":
                 case "jan":
                     formattedMonth = "00";
@@ -309,7 +313,14 @@ public class Scheduler {
                     break;
             }
 
-            switch(day){
+            calMonth = Integer.parseInt(formattedMonth);//formatted month isnull here
+
+        }
+        else {
+            calMonth = cal.get(Calendar.MONTH);
+        }
+        if (day != null) {
+            switch (day) {
                 case "1":
                     formattedDay = "01";
                     break;
@@ -341,15 +352,27 @@ public class Scheduler {
                     formattedDay = day;
                     break;
             }
-            Log.i(TAG,String.format("%s, %s, %s", year, formattedMonth, formattedDay));
-            calYear = Integer.parseInt(year);
-            calMonth = Integer.parseInt(formattedMonth);//formatted month isnull here
             dayOfMonth = Integer.parseInt(formattedDay);
+        }else {
+            dayOfMonth = cal.get(Calendar.DATE);
+        }
+        if(year == null) {
+            calYear = cal.get(Calendar.YEAR);
+        }
+            Log.i(TAG,String.format("%s, %s, %s", year, formattedMonth, formattedDay));
+
             formattedDate = year + formattedMonth + formattedDay;
-        }
-        else{
+
+        /*else{
             formattedDate = new SimpleDateFormat("yyyyMMdd", Locale.US).format(new Date());
-        }
+            Calendar cal = Calendar.getInstance();
+            if(year == null){
+                calYear = cal.get(Calendar.YEAR);
+            }
+            if(month == null){
+                calMonth = cal.get(Calendar.MONTH);
+            }
+        }*/
 
         //Format date - time (if time provided) date "T" time: 19980118T230000
         String formattedDateTime = "";
