@@ -78,7 +78,8 @@ public class MainActivity extends AppCompatActivity {
     private int PERMISSION_ALL = 1;
     private String[] PERMISSIONS = {Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_CALENDAR,
-            Manifest.permission.WRITE_CALENDAR, Manifest.permission.CAMERA};
+            Manifest.permission.WRITE_CALENDAR, Manifest.permission.CAMERA, Manifest.permission.INTERNET,
+            Manifest.permission.ACCESS_NETWORK_STATE};
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
