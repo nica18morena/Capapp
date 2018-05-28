@@ -22,7 +22,7 @@ import java.io.OutputStream;
 public class OCRProcessing {
     private static final String TAG = OCRProcessing.class.getSimpleName();
     private TessBaseAPI tessBaseAPI;
-    private static final String DATA_PATH = Environment.getExternalStorageDirectory().toString() + "/TesseractSample/";
+    private static final String DATA_PATH = Environment.getExternalStorageDirectory().toString() + "/Pictoevent/";
     private static final String TESSDATA = "tessdata";
     private Context activityContext;
     private static final String lang = "eng";
@@ -66,7 +66,7 @@ public class OCRProcessing {
     private void prepareDirectory(String _path){
         File dir = new File(_path);
         if(!dir.exists()){
-            if(!dir.mkdir()){
+            if(!dir.mkdirs()){
                 Log.e(TAG, "ERROR: Creation of directory " + _path + " failed, check Android Manifest");
             }
         } else{

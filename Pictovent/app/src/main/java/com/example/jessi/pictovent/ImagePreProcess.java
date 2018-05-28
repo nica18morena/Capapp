@@ -46,7 +46,7 @@ import static android.content.ContentValues.TAG;
 public class ImagePreProcess {
 
     private static int scaleFactor;
-    private static final String FILE_LOCATION = Environment.getExternalStorageDirectory().toString() + "/Pictovent/";
+    private static final String FILE_LOCATION = Environment.getExternalStorageDirectory().toString() + "/Pictoevent/";
     private long CAL_ID;
     private Scheduler scheduler;
     Mat src, srcOrig;
@@ -118,7 +118,7 @@ public class ImagePreProcess {
             String temp_text = "Friday, January 26, 2018 2:00pm (30 minutes)";
 
             //Call CalDictionary class
-            CalDictionary dictionary = new CalDictionary(temp_text);
+            CalDictionary dictionary = new CalDictionary(text);
             dictionary.parseText();
             //Call to create an event
             this.checkCalendars();

@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.provider.CalendarContract;
 import android.util.Log;
 
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -122,32 +123,24 @@ public class Scheduler {
     }
     private void setEvent(String _dStart){
 
-        //Calendar calendar = new GregorianCalendar(2017, 3, 14);
+        //Set the calendar values
         Calendar calendar = new GregorianCalendar();
-        //calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
         calendar.setTimeZone(TimeZone.getDefault());// try to get default timezone
-       /*//Try setting with time info
-        calendar.set(Calendar.HOUR, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.MILLISECOND, 0);*/
-
-       calendar.set(Calendar.YEAR, calYear);
-       calendar.set(Calendar.MONTH, calMonth);
-       calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+        calendar.set(Calendar.YEAR, calYear);
+        calendar.set(Calendar.MONTH, calMonth);
+        calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
         calendar.set(Calendar.HOUR, hourOfDay);
         calendar.set(Calendar.MINUTE, mintues);
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.AM_PM, amPm);
-        long start;
-        if(_dStart.isEmpty()){
-             start  = calendar.getTimeInMillis();
-        }
-        else{
-             start = Long.valueOf(_dStart);
-            //start = calendar.getTimeInMillis();
-        }
-        Log.i(TAG, "Default string value is: " + start + " Created value is: " + _dStart);
+        Log.d(TAG, "Event: " + calendar.toString());
+//        long start;
+//        if (_dStart.isEmpty()) {
+//            start = calendar.getTimeInMillis();
+//        } else {
+//            start = Long.valueOf(_dStart);
+//            //start = calendar.getTimeInMillis();
+//        Log.d(TAG, "Default string value is: " + start + " Created value is: " + _dStart);
         ContentValues values = new ContentValues();
         values.put(CalendarContract.Events.DTSTART, calendar.getTimeInMillis());//testing if time is issue- og value: start
         values.put(CalendarContract.Events.DTEND, calendar.getTimeInMillis());
@@ -155,7 +148,7 @@ public class Scheduler {
         values.put(CalendarContract.Events.TITLE, "Event");
         values.put(CalendarContract.Events.EVENT_LOCATION, " ");
         values.put(CalendarContract.Events.CALENDAR_ID, CAL_ID);
-        values.put(CalendarContract.Events.EVENT_TIMEZONE, "America/Los_Angeles");
+        values.put(CalendarContract.Events.EVENT_TIMEZONE, calendar.getTimeZone().getID());
         values.put(CalendarContract.Events.DESCRIPTION, " ");
         values.put(CalendarContract.Events.ACCESS_LEVEL, CalendarContract.Events.ACCESS_PRIVATE);
         values.put(CalendarContract.Events.SELF_ATTENDEE_STATUS, CalendarContract.Events.STATUS_CONFIRMED);
@@ -166,11 +159,10 @@ public class Scheduler {
         //values.put(CalendarContract.Calendars.SYNC_EVENTS, 1);
         //values.put(CalendarContract.Calendars.ACCOUNT_NAME, ACCOUNT_NAME);
         //values.put(CalendarContract.Calendars.ACCOUNT_TYPE,CalendarContract.ACCOUNT_TYPE_LOCAL);
-        try{
+        try {
             Uri uri = contentResolver.insert(CalendarContract.Events.CONTENT_URI, values);//Todo:failing here
             eventID = Long.parseLong(uri.getLastPathSegment());
-        }
-        catch (SecurityException e){
+        } catch (SecurityException e) {
             Log.e(TAG, "Error occurred: " + e.getStackTrace());
         }
 
@@ -242,24 +234,131 @@ public class Scheduler {
         String formattedDate = "";
         String formattedMonth = "";
         String formattedDay = "";
-//Set the dictionary?
-        //dictionary = _dictionary;
-        //Format date- YYYYMMDD
-        String date = _dictionary.getStart_date();
-        if(date != null){
-            String[] tempDate = date.split("[/-]");
-            if(tempDate.length == 3){
-                formattedDate = "20" + tempDate[2] + tempDate[0] + tempDate[1];
+        boolean haveDate;
+
+        //TODO: if any of these values are null- default today's date?
+        DateFormat defaultFormat = new SimpleDateFormat("yyyy/MM/dd");
+        Calendar cal = Calendar.getInstance();
+
+        //Extract date if there is a date formatted mm/dd/yy or similar
+        haveDate = extractDate(_dictionary);
+
+        if (!haveDate) {
+            //Get the month formatted XX
+            formattedMonth = extractMonth(_dictionary, formattedMonth);
+            if(formattedMonth.isEmpty()){
+                Log.d(TAG, cal.toString());
+                calMonth = cal.get(Calendar.MONTH);// No need to offset the 0 based MONTH. Adding to calendar adds date to correct month
+            }
+            //Get the day formatted XX
+            formattedDay = extractDayOfMonth(_dictionary, formattedDay);
+            if(formattedDay.isEmpty()){
+                dayOfMonth = cal.get(Calendar.DAY_OF_MONTH);
+            }
+            //Get the year formatted 20xx
+            String year = _dictionary.getYear();
+            if (year != null ) {
+                calYear = Integer.parseInt(year);
+            } else {
+                calYear = cal.get(Calendar.YEAR);
             }
         }
-        //Build a formatted date
-        String month = _dictionary.getStart_month();
-        String day = _dictionary.getStart_day();
-        String year = _dictionary.getYear();
-        //TODO: if any of these values are null- default today's date?
 
-        if(month != null && day != null && year != null){
-            switch(month.toLowerCase()) {
+        String formattedDateTime = extractTime(_dictionary, formattedDate);
+
+        //Any additional?
+        this.setEvent(formattedDateTime);
+    }
+
+    private String extractTime(CalDictionary _dictionary, String formattedDate) {
+        //Format date - time (if time provided) date "T" time: 19980118T230000
+        String formattedDateTime = "";
+        //Format time to 24hrs
+        String time = _dictionary.getStart_time();
+
+        if(time != null){
+            String[] ampm = time.split("[^a-zA-Z]");
+            String[] timeTokens = time.split("[:a-zA-Z]");
+            int intHrs = Integer.parseInt(timeTokens[0]);
+
+            int intMin = Integer.parseInt(timeTokens[1]);
+            mintues = intMin;
+            hourOfDay = intHrs;
+
+            if(ampm.length > 0 ){
+                switch(ampm[ampm.length - 1]){
+                    case "am":
+                    case "AM":
+                    case "Am":
+                        formattedDateTime = String.format("%sT%s%s00",formattedDate, timeTokens[0], timeTokens[1]);
+                        amPm = Calendar.AM;
+                        //hourOfDay = intHrs;moved above
+                        break;
+                    case "pm":
+                    case "PM":
+                    case "Pm":
+                        //int intHrs = Integer.parseInt(timeTokens[0]);// This was originally here, added above is new
+                        //formattedDateTime = String.format("%sT%d%s00",formattedDate, (intHrs + 12), timeTokens[1]);
+                        formattedDateTime = String.format("%s%d%s00",formattedDate, (intHrs + 12), timeTokens[1]);
+                        amPm = Calendar.PM;
+                        //hourOfDay = intHrs + 12;not needed here, moved above, using am_pm field to determine if am pm
+                        break;
+                }
+            }
+            else{
+                //formattedDateTime = String.format("%sT%s%s00",formattedDate, timeTokens[0], timeTokens[1]);
+                formattedDateTime = String.format("%s%s%s00",formattedDate, timeTokens[0], timeTokens[1]);
+            }
+
+        }
+        return formattedDateTime;
+    }
+
+    private String extractDayOfMonth(CalDictionary _dictionary, String formattedDay) {
+        String day = _dictionary.getStart_day();
+        if (day != null) {
+            switch (day) {
+                case "1":
+                    formattedDay = "01";
+                    break;
+                case "2":
+                    formattedDay = "02";
+                    break;
+                case "3":
+                    formattedDay = "03";
+                    break;
+                case "4":
+                    formattedDay = "04";
+                    break;
+                case "5":
+                    formattedDay = "05";
+                    break;
+                case "6":
+                    formattedDay = "06";
+                    break;
+                case "7":
+                    formattedDay = "07";
+                    break;
+                case "8":
+                    formattedDay = "08";
+                    break;
+                case "9":
+                    formattedDay = "09";
+                    break;
+                default:
+                    formattedDay = day;
+                    break;
+            }
+            dayOfMonth = Integer.parseInt(formattedDay);
+        }
+        return formattedDay;
+    }
+
+    private String extractMonth(CalDictionary _dictionary, String formattedMonth) {
+        String month = _dictionary.getStart_month();
+        // if(month != null && day != null && year != null){
+        if(month != null) {
+            switch (month.toLowerCase()) {
                 case "january":
                 case "jan":
                     formattedMonth = "00";
@@ -309,89 +408,26 @@ public class Scheduler {
                     break;
             }
 
-            switch(day){
-                case "1":
-                    formattedDay = "01";
-                    break;
-                case "2":
-                    formattedDay = "02";
-                    break;
-                case "3":
-                    formattedDay = "03";
-                    break;
-                case "4":
-                    formattedDay = "04";
-                    break;
-                case "5":
-                    formattedDay = "05";
-                    break;
-                case "6":
-                    formattedDay = "06";
-                    break;
-                case "7":
-                    formattedDay = "07";
-                    break;
-                case "8":
-                    formattedDay = "08";
-                    break;
-                case "9":
-                    formattedDay = "09";
-                    break;
-                default:
-                    formattedDay = day;
-                    break;
-            }
-            Log.i(TAG,String.format("%s, %s, %s", year, formattedMonth, formattedDay));
-            calYear = Integer.parseInt(year);
             calMonth = Integer.parseInt(formattedMonth);//formatted month isnull here
-            dayOfMonth = Integer.parseInt(formattedDay);
-            formattedDate = year + formattedMonth + formattedDay;
+
         }
-        else{
-            formattedDate = new SimpleDateFormat("yyyyMMdd", Locale.US).format(new Date());
-        }
+        return formattedMonth;
+    }
 
-        //Format date - time (if time provided) date "T" time: 19980118T230000
-        String formattedDateTime = "";
-        //Format time to 24hrs
-        String time = _dictionary.getStart_time();
-
-        if(time != null){
-            String[] ampm = time.split("[^a-zA-Z]");
-            String[] timeTokens = time.split("[:a-zA-Z]");
-            int intHrs = Integer.parseInt(timeTokens[0]);
-
-            int intMin = Integer.parseInt(timeTokens[1]);
-            mintues = intMin;
-            hourOfDay = intHrs;
-
-            if(ampm.length > 0 ){
-                switch(ampm[ampm.length - 1]){
-                    case "am":
-                    case "AM":
-                    case "Am":
-                        formattedDateTime = String.format("%sT%s%s00",formattedDate, timeTokens[0], timeTokens[1]);
-                        amPm = Calendar.AM;
-                        //hourOfDay = intHrs;moved above
-                        break;
-                    case "pm":
-                    case "PM":
-                    case "Pm":
-                        //int intHrs = Integer.parseInt(timeTokens[0]);// This was originally here, added above is new
-                        //formattedDateTime = String.format("%sT%d%s00",formattedDate, (intHrs + 12), timeTokens[1]);
-                        formattedDateTime = String.format("%s%d%s00",formattedDate, (intHrs + 12), timeTokens[1]);
-                        amPm = Calendar.PM;
-                        //hourOfDay = intHrs + 12;not needed here, moved above, using am_pm field to determine if am pm
-                        break;
-                }
+    private boolean extractDate(CalDictionary _dictionary) {
+        boolean generated = false;
+        String date = _dictionary.getStart_date();
+        if(date != null){
+            String[] tempDate = date.split("[/-]");
+            if(tempDate.length == 3){
+                //Assuming date format is month/ day / year
+                calYear = Integer.parseInt("20" + tempDate[2]);
+                calMonth = Integer.parseInt(tempDate[0]);
+                dayOfMonth = Integer.parseInt(tempDate[1]);
+                generated = true;
+                //formattedDate = "20" + tempDate[2] + tempDate[0] + tempDate[1];
             }
-            else{
-                //formattedDateTime = String.format("%sT%s%s00",formattedDate, timeTokens[0], timeTokens[1]);
-                formattedDateTime = String.format("%s%s%s00",formattedDate, timeTokens[0], timeTokens[1]);
-            }
-
         }
-        //Any additional?
-        this.setEvent(formattedDateTime);
+        return generated;
     }
 }
