@@ -236,6 +236,10 @@ public class CalDictionary {
 
         for (String word: text.split("\\s")){
             String[] wordtemp = word.split(",");
+
+            if(wordtemp == null){
+                continue;
+            }
             word = wordtemp[0];
 
             boolean match_date_pattern = false;

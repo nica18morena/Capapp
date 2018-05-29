@@ -422,7 +422,7 @@ public class Scheduler {
             if(tempDate.length == 3){
                 //Assuming date format is month/ day / year
                 calYear = Integer.parseInt("20" + tempDate[2]);
-                calMonth = Integer.parseInt(tempDate[0]);
+                calMonth = Integer.parseInt(tempDate[0]) - 1;//Calendar adds one to the month
                 dayOfMonth = Integer.parseInt(tempDate[1]);
                 generated = true;
                 //formattedDate = "20" + tempDate[2] + tempDate[0] + tempDate[1];
