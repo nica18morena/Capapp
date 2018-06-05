@@ -124,7 +124,7 @@ public class ImagePreProcess {
             this.checkCalendars();
             this.createCalendar();
             scheduler.createEvent(dictionary);
-            return text;
+            return scheduler.getEvent();
         }
 
         @Override
@@ -137,6 +137,7 @@ public class ImagePreProcess {
                     Toast.makeText(getApplicationContext(), errorMsg, Toast.LENGTH_SHORT).show();
                 }*/
             super.onPostExecute(_text);
+            final String  createdEvent = _text;
             dialog.dismiss();
             dialog = null;
             final Activity activity = (Activity) context;
@@ -144,7 +145,7 @@ public class ImagePreProcess {
                 activity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(activity, "An event was successfully created", Toast.LENGTH_LONG).show();
+                        Toast.makeText(activity, createdEvent, Toast.LENGTH_LONG).show();
                     }
                 });
             }

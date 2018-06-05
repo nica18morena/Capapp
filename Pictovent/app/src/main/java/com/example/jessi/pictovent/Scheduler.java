@@ -23,7 +23,7 @@ import java.util.TimeZone;
  */
 
 public class Scheduler {
-
+    private static Calendar calendar = new GregorianCalendar();
     private static final String TAG = "Scheduler";
     private static int PROJECTION_ID_INDEX = 0;
     private static int PROJECTION_ACCOUNT_NAME_INDEX = 0;
@@ -124,7 +124,7 @@ public class Scheduler {
     private void setEvent(String _dStart){
 
         //Set the calendar values
-        Calendar calendar = new GregorianCalendar();
+        //Calendar calendar = new GregorianCalendar();
         calendar.setTimeZone(TimeZone.getDefault());// try to get default timezone
         calendar.set(Calendar.YEAR, calYear);
         calendar.set(Calendar.MONTH, calMonth);
@@ -167,6 +167,15 @@ public class Scheduler {
         }
 
         this.setEventID(eventID);
+    }
+
+    /**
+     * Gets the event date and time set on the calendar
+     * @return the string representation of the event date and time
+     */
+    public String getEvent(){
+        SimpleDateFormat dateFormat = new SimpleDateFormat("MM-dd-yyyy HH:mm", Locale.US);
+        return dateFormat.format(calendar.getTimeInMillis());
     }
     public void setEventID(long _eventID){
         eventID = _eventID;
