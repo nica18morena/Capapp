@@ -5,4 +5,7 @@
     <string name="image">Image</string>
     <string name="camera_error">This device doesn\'t support Camera2 API.</string>
     <string name="take_picture">Take picture</string>
+    <string name="dialog_ok">Ok</string>
+    <string name= "dialog_retry">Retry</string>
+    <string name= "dialog_text">Create an event on: </string>
 </resources>

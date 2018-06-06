@@ -1,6 +1,8 @@
 package com.example.jessi.pictovent;
 
 import android.app.Activity;
+import android.app.DialogFragment;
+import android.app.FragmentManager;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.database.Cursor;
@@ -10,11 +12,13 @@ import android.graphics.Matrix;
 import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.CalendarContract;
 import android.support.annotation.NonNull;
+import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -146,6 +150,30 @@ public class ImagePreProcess {
                     @Override
                     public void run() {
                         Toast.makeText(activity, createdEvent, Toast.LENGTH_LONG).show();
+                    }
+                });
+            }
+
+
+
+            if (activity != null) {
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        //Create the new dialog
+                        EventDialog eventDialog = new EventDialog();
+
+                        //Create the bundle
+                        Bundle bundle = new Bundle();
+                        bundle.putString("event", createdEvent);
+                        eventDialog.setArguments(bundle);
+
+                        //Create the fragment manager and show the dialog
+                        FragmentActivity fActivity = (FragmentActivity) context;
+                        android.support.v4.app.FragmentManager fm = fActivity.getSupportFragmentManager();
+                        //android.support.v4.app.FragmentManager fm = activity.getFragmentManager();
+                        String tag = "EventDialog";
+                        eventDialog.show(fm, tag);//TODO: figure out how to call to show the fragment
                     }
                 });
             }
