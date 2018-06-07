@@ -47,6 +47,8 @@ public class Scheduler {
     private static int calMonth;
     private static int calYear;
     private static int amPm;
+    private static final String EVENT_NOT_FOUND = "An event was not found";
+    private static String eventNotFound;
 //private static CalDictionary dictionary;
 
      public Scheduler(Context ctx){
@@ -123,50 +125,46 @@ public class Scheduler {
     }
     private void setEvent(String _dStart){
 
-        //Set the calendar values
-        //Calendar calendar = new GregorianCalendar();
-        calendar.setTimeZone(TimeZone.getDefault());// try to get default timezone
-        calendar.set(Calendar.YEAR, calYear);
-        calendar.set(Calendar.MONTH, calMonth);
-        calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-        calendar.set(Calendar.HOUR, hourOfDay);
-        calendar.set(Calendar.MINUTE, mintues);
-        calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.AM_PM, amPm);
-        Log.d(TAG, "Event: " + calendar.toString());
-//        long start;
-//        if (_dStart.isEmpty()) {
-//            start = calendar.getTimeInMillis();
-//        } else {
-//            start = Long.valueOf(_dStart);
-//            //start = calendar.getTimeInMillis();
-//        Log.d(TAG, "Default string value is: " + start + " Created value is: " + _dStart);
-        ContentValues values = new ContentValues();
-        values.put(CalendarContract.Events.DTSTART, calendar.getTimeInMillis());//testing if time is issue- og value: start
-        values.put(CalendarContract.Events.DTEND, calendar.getTimeInMillis());
-        //values.put(CalendarContract.Events.RRULE, _freq);
-        values.put(CalendarContract.Events.TITLE, "Event");
-        values.put(CalendarContract.Events.EVENT_LOCATION, " ");
-        values.put(CalendarContract.Events.CALENDAR_ID, CAL_ID);
-        values.put(CalendarContract.Events.EVENT_TIMEZONE, calendar.getTimeZone().getID());
-        values.put(CalendarContract.Events.DESCRIPTION, " ");
-        values.put(CalendarContract.Events.ACCESS_LEVEL, CalendarContract.Events.ACCESS_PRIVATE);
-        values.put(CalendarContract.Events.SELF_ATTENDEE_STATUS, CalendarContract.Events.STATUS_CONFIRMED);
-        //values.put(CalendarContract.Events.ALL_DAY, 1);
-        values.put(CalendarContract.Events.ORGANIZER, "Pictoevent");
-        values.put(CalendarContract.Events.GUESTS_CAN_INVITE_OTHERS, 1);
-        values.put(CalendarContract.Events.AVAILABILITY, CalendarContract.Events.AVAILABILITY_BUSY);
-        //values.put(CalendarContract.Calendars.SYNC_EVENTS, 1);
-        //values.put(CalendarContract.Calendars.ACCOUNT_NAME, ACCOUNT_NAME);
-        //values.put(CalendarContract.Calendars.ACCOUNT_TYPE,CalendarContract.ACCOUNT_TYPE_LOCAL);
-        try {
-            Uri uri = contentResolver.insert(CalendarContract.Events.CONTENT_URI, values);//Todo:failing here
-            eventID = Long.parseLong(uri.getLastPathSegment());
-        } catch (SecurityException e) {
-            Log.e(TAG, "Error occurred: " + e.getStackTrace());
-        }
+        if(eventNotFound.isEmpty()){
 
-        this.setEventID(eventID);
+            //Set the calendar values
+            calendar.setTimeZone(TimeZone.getDefault());// try to get default timezone
+            calendar.set(Calendar.YEAR, calYear);
+            calendar.set(Calendar.MONTH, calMonth);
+            calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+            calendar.set(Calendar.HOUR, hourOfDay);
+            calendar.set(Calendar.MINUTE, mintues);
+            calendar.set(Calendar.SECOND, 0);
+            calendar.set(Calendar.AM_PM, amPm);
+            Log.d(TAG, "Event: " + calendar.toString());
+
+            ContentValues values = new ContentValues();
+            values.put(CalendarContract.Events.DTSTART, calendar.getTimeInMillis());
+            values.put(CalendarContract.Events.DTEND, calendar.getTimeInMillis());
+            //values.put(CalendarContract.Events.RRULE, _freq);
+            values.put(CalendarContract.Events.TITLE, "Event");
+            values.put(CalendarContract.Events.EVENT_LOCATION, " ");
+            values.put(CalendarContract.Events.CALENDAR_ID, CAL_ID);
+            values.put(CalendarContract.Events.EVENT_TIMEZONE, calendar.getTimeZone().getID());
+            values.put(CalendarContract.Events.DESCRIPTION, " ");
+            values.put(CalendarContract.Events.ACCESS_LEVEL, CalendarContract.Events.ACCESS_PRIVATE);
+            values.put(CalendarContract.Events.SELF_ATTENDEE_STATUS, CalendarContract.Events.STATUS_CONFIRMED);
+            //values.put(CalendarContract.Events.ALL_DAY, 1);
+            values.put(CalendarContract.Events.ORGANIZER, "Pictoevent");
+            values.put(CalendarContract.Events.GUESTS_CAN_INVITE_OTHERS, 1);
+            values.put(CalendarContract.Events.AVAILABILITY, CalendarContract.Events.AVAILABILITY_BUSY);
+            //values.put(CalendarContract.Calendars.SYNC_EVENTS, 1);
+            //values.put(CalendarContract.Calendars.ACCOUNT_NAME, ACCOUNT_NAME);
+            //values.put(CalendarContract.Calendars.ACCOUNT_TYPE,CalendarContract.ACCOUNT_TYPE_LOCAL);
+            try {
+                Uri uri = contentResolver.insert(CalendarContract.Events.CONTENT_URI, values);//Todo:failing here
+                eventID = Long.parseLong(uri.getLastPathSegment());
+            } catch (SecurityException e) {
+                Log.e(TAG, "Error occurred: " + e.getStackTrace());
+            }
+
+            this.setEventID(eventID);
+        }
     }
 
     /**
@@ -174,8 +172,11 @@ public class Scheduler {
      * @return the string representation of the event date and time
      */
     public String getEvent(){
-        SimpleDateFormat dateFormat = new SimpleDateFormat("MM-dd-yyyy HH:mm", Locale.US);
-        return dateFormat.format(calendar.getTimeInMillis());
+        if(eventNotFound.isEmpty()){
+            SimpleDateFormat dateFormat = new SimpleDateFormat("MM-dd-yyyy HH:mm", Locale.US);
+            return dateFormat.format(calendar.getTimeInMillis());
+        }
+       return eventNotFound;
     }
     public void setEventID(long _eventID){
         eventID = _eventID;
@@ -256,13 +257,15 @@ public class Scheduler {
             //Get the month formatted XX
             formattedMonth = extractMonth(_dictionary, formattedMonth);
             if(formattedMonth.isEmpty()){
+                eventNotFound = EVENT_NOT_FOUND;
                 Log.d(TAG, cal.toString());
-                calMonth = cal.get(Calendar.MONTH);// No need to offset the 0 based MONTH. Adding to calendar adds date to correct month
+                //calMonth = cal.get(Calendar.MONTH);// No need to offset the 0 based MONTH. Adding to calendar adds date to correct month
             }
             //Get the day formatted XX
             formattedDay = extractDayOfMonth(_dictionary, formattedDay);
             if(formattedDay.isEmpty()){
-                dayOfMonth = cal.get(Calendar.DAY_OF_MONTH);
+                eventNotFound = EVENT_NOT_FOUND;
+                //dayOfMonth = cal.get(Calendar.DAY_OF_MONTH);
             }
             //Get the year formatted 20xx
             String year = _dictionary.getYear();
@@ -273,10 +276,10 @@ public class Scheduler {
             }
         }
 
-        String formattedDateTime = extractTime(_dictionary, formattedDate);
+        //String formattedDateTime = extractTime(_dictionary, formattedDate);
 
         //Any additional?
-        this.setEvent(formattedDateTime);
+        //this.setEvent(formattedDateTime);
     }
 
     private String extractTime(CalDictionary _dictionary, String formattedDate) {

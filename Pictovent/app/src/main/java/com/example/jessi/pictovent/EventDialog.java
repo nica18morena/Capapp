@@ -25,7 +25,7 @@ public class EventDialog extends DialogFragment {
 
         // Use the Builder class for convenient dialog construction
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setMessage("Event created on" + " " + eventDate)//TODO: Figure out why string not coming in
+        builder.setMessage("Event created on:" + " " + eventDate)//TODO: Figure out why string not coming in
                 .setTitle(R.string.app_name)
                 .setPositiveButton(R.string.dialog_ok, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
