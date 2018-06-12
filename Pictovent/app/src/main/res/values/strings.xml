@@ -8,4 +8,5 @@
     <string name="dialog_ok">Ok</string>
     <string name= "dialog_retry">Retry</string>
     <string name= "dialog_text">Create an event on: </string>
+    <string name= "event_not_found">An event was not found</string>
 </resources>
