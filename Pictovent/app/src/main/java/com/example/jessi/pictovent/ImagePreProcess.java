@@ -1,8 +1,6 @@
 package com.example.jessi.pictovent;
 
 import android.app.Activity;
-import android.app.DialogFragment;
-import android.app.FragmentManager;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.database.Cursor;
@@ -14,19 +12,12 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
-import android.os.Looper;
 import android.provider.CalendarContract;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.googlecode.tesseract.android.TessBaseAPI;
-
-import org.opencv.android.BaseLoaderCallback;
-import org.opencv.android.LoaderCallbackInterface;
-import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
@@ -63,7 +54,7 @@ public class ImagePreProcess {
         scheduler = new Scheduler(context);
     }
 
-    public class GetPage extends AsyncTask<Void, Void, String> {
+    public class AsyncProcessTask extends AsyncTask<Void, Void, String> {
         ProgressDialog dialog;
 
         @Override
@@ -94,22 +85,24 @@ public class ImagePreProcess {
             Bitmap bitmap_grey = Bitmap.createBitmap(src.cols(), src.rows(), Bitmap.Config.ARGB_8888);
             Utils.matToBitmap(src, bitmap_grey);
             storeImage(bitmap_grey, "image_grey.jpg");
-
+            Log.d(TAG, "Stored grey image");
             //Apply histogram Equalization
             Imgproc.equalizeHist(src, dst);
             //Save histo'ed image
             Bitmap bitmap_histo = Bitmap.createBitmap(dst.cols(), dst.rows(), Bitmap.Config.ARGB_8888);
             Utils.matToBitmap(dst, bitmap_histo);
             storeImage(bitmap_histo, "image_histo.jpg");
-
+            Log.d(TAG, "Stored equilized histo image");
                 /*Use adaptive threshold to create binary image*/
            Mat bin = new Mat();
             Imgproc.adaptiveThreshold(dst, bin, 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C,
                     Imgproc.THRESH_BINARY, 15, 40);
+            Log.d(TAG, "Applied adaptive thresholding");
             //Save binary image
             Bitmap bitmap_binary = Bitmap.createBitmap(bin.cols(), bin.rows(), Bitmap.Config.ARGB_8888);
             Utils.matToBitmap(bin, bitmap_binary);
             storeImage(bitmap_binary, "image_binary.jpg");
+            Log.d(TAG, "Stored binary image");
             /*Fix image warp*/
             //TODO: Algorithm for image warp
 
@@ -118,6 +111,7 @@ public class ImagePreProcess {
             mOcr.prepareTesseract();
 
             String text = mOcr.extractText(bitmap_binary);
+            Log.d(TAG, text);
             //Temp code to continue programming and testing
             String temp_text = "Friday, January 26, 2018 2:00pm (30 minutes)";
 
@@ -145,14 +139,14 @@ public class ImagePreProcess {
             dialog.dismiss();
             dialog = null;
             final Activity activity = (Activity) context;
-            if (activity != null) {
-                activity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(activity, createdEvent, Toast.LENGTH_LONG).show();
-                    }
-                });
-            }
+//            if (activity != null) {
+//                activity.runOnUiThread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        Toast.makeText(activity, createdEvent, Toast.LENGTH_LONG).show();
+//                    }
+//                });
+//            }
 
 
 
@@ -280,7 +274,7 @@ public class ImagePreProcess {
             scaleFactor = calcScaleFactor(srcOrig.rows(), srcOrig.cols());
             Imgproc.resize(srcOrig, src, new Size(srcOrig.cols() / scaleFactor, srcOrig.rows() / scaleFactor));
 
-            new GetPage().execute();
+            new AsyncProcessTask().execute();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }

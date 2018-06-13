@@ -48,7 +48,7 @@ public class Scheduler {
     private static int calYear;
     private static int amPm;
     private static final String EVENT_NOT_FOUND = "An event was not found";
-    private static String eventNotFound;
+    private static String eventNotFound = "";
 //private static CalDictionary dictionary;
 
      public Scheduler(Context ctx){
@@ -123,7 +123,7 @@ public class Scheduler {
     public void setCalId(long _calId){
         CAL_ID = _calId;
     }
-    private void setEvent(String _dStart){
+    private void setEvent(){
 
         if(eventNotFound.isEmpty()){
 
@@ -173,8 +173,9 @@ public class Scheduler {
      */
     public String getEvent(){
         if(eventNotFound.isEmpty()){
-            SimpleDateFormat dateFormat = new SimpleDateFormat("MM-dd-yyyy HH:mm", Locale.US);
-            return dateFormat.format(calendar.getTimeInMillis());
+            SimpleDateFormat dateFormat = new SimpleDateFormat();
+            Log.d(TAG, dateFormat.format(calendar.getTimeInMillis()));
+            return "Event created on: " + dateFormat.format(calendar.getTimeInMillis());
         }
        return eventNotFound;
     }
@@ -270,6 +271,7 @@ public class Scheduler {
             //Get the year formatted 20xx
             String year = _dictionary.getYear();
             if (year != null ) {
+                year = year.replaceAll("[^\\d]", "");
                 calYear = Integer.parseInt(year);
             } else {
                 calYear = cal.get(Calendar.YEAR);
@@ -279,7 +281,7 @@ public class Scheduler {
         //String formattedDateTime = extractTime(_dictionary, formattedDate);
 
         //Any additional?
-        //this.setEvent(formattedDateTime);
+        this.setEvent();
     }
 
     private String extractTime(CalDictionary _dictionary, String formattedDate) {
@@ -328,7 +330,9 @@ public class Scheduler {
 
     private String extractDayOfMonth(CalDictionary _dictionary, String formattedDay) {
         String day = _dictionary.getStart_day();
+
         if (day != null) {
+            day = day.replaceAll("[^\\d]", "");
             switch (day) {
                 case "1":
                     formattedDay = "01";

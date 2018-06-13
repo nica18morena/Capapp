@@ -237,7 +237,7 @@ public class CalDictionary {
         for (String word: text.split("\\s")){
             String[] wordtemp = word.split(",");
 
-            if(wordtemp == null){
+            if(wordtemp == null || wordtemp.length == 0){
                 continue;
             }
             word = wordtemp[0];
