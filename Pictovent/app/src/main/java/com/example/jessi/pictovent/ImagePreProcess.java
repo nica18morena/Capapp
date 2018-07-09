@@ -19,6 +19,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import org.opencv.android.Utils;
+import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
@@ -77,7 +78,36 @@ public class ImagePreProcess {
             baseAPI.end();
             //End TESS*/
 
-                /*Equalize the image histogram*/
+//                /*Equalize the image histogram*/
+//          Mat dst = new Mat();
+//            //Convert to grey
+//            Imgproc.cvtColor(src, src, Imgproc.COLOR_BGR2GRAY);
+//            //Save grey image
+//            Bitmap bitmap_grey = Bitmap.createBitmap(src.cols(), src.rows(), Bitmap.Config.ARGB_8888);
+//            Utils.matToBitmap(src, bitmap_grey);
+//            storeImage(bitmap_grey, "image_grey.jpg");
+//            Log.d(TAG, "Stored grey image");
+//            //Apply histogram Equalization
+//            Imgproc.equalizeHist(src, dst);
+//            //Save histo'ed image
+//            Bitmap bitmap_histo = Bitmap.createBitmap(dst.cols(), dst.rows(), Bitmap.Config.ARGB_8888);
+//            Utils.matToBitmap(dst, bitmap_histo);
+//            storeImage(bitmap_histo, "image_histo.jpg");
+//            Log.d(TAG, "Stored equilized histo image");
+//                /*Use adaptive threshold to create binary image*/
+//           Mat bin = new Mat();
+//            Imgproc.adaptiveThreshold(dst, bin, 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C,
+//                    Imgproc.THRESH_BINARY, 15, 40);
+//            Log.d(TAG, "Applied adaptive thresholding");
+//            //Save binary image
+//            Bitmap bitmap_binary = Bitmap.createBitmap(bin.cols(), bin.rows(), Bitmap.Config.ARGB_8888);
+//            Utils.matToBitmap(bin, bitmap_binary);
+//            storeImage(bitmap_binary, "image_binary.jpg");
+//            Log.d(TAG, "Stored binary image");
+//            /*Fix image warp*/
+//            //TODO: Algorithm for image warp
+
+
           Mat dst = new Mat();
             //Convert to grey
             Imgproc.cvtColor(src, src, Imgproc.COLOR_BGR2GRAY);
@@ -86,35 +116,39 @@ public class ImagePreProcess {
             Utils.matToBitmap(src, bitmap_grey);
             storeImage(bitmap_grey, "image_grey.jpg");
             Log.d(TAG, "Stored grey image");
-            //Apply histogram Equalization
-            Imgproc.equalizeHist(src, dst);
-            //Save histo'ed image
-            Bitmap bitmap_histo = Bitmap.createBitmap(dst.cols(), dst.rows(), Bitmap.Config.ARGB_8888);
-            Utils.matToBitmap(dst, bitmap_histo);
-            storeImage(bitmap_histo, "image_histo.jpg");
-            Log.d(TAG, "Stored equilized histo image");
-                /*Use adaptive threshold to create binary image*/
-           Mat bin = new Mat();
-            Imgproc.adaptiveThreshold(dst, bin, 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C,
-                    Imgproc.THRESH_BINARY, 15, 40);
-            Log.d(TAG, "Applied adaptive thresholding");
-            //Save binary image
-            Bitmap bitmap_binary = Bitmap.createBitmap(bin.cols(), bin.rows(), Bitmap.Config.ARGB_8888);
-            Utils.matToBitmap(bin, bitmap_binary);
-            storeImage(bitmap_binary, "image_binary.jpg");
-            Log.d(TAG, "Stored binary image");
-            /*Fix image warp*/
-            //TODO: Algorithm for image warp
+//            //Apply bilateral filtering
+//            Imgproc.bilateralFilter(src, dst, 10, 80, 80, Core.BORDER_DEFAULT);//og d:15
+//            //Save bilateral filtered  image
+//            Bitmap bitmap_bilateral = Bitmap.createBitmap(dst.cols(), dst.rows(), Bitmap.Config.ARGB_8888);
+//            Utils.matToBitmap(dst, bitmap_bilateral);
+//            storeImage(bitmap_bilateral, "image_bilateral.jpg");
+//            Log.d(TAG, "Stored bilateral image");
+//            /*Use adaptive threshold to create binary image*/
+//           Mat bin = new Mat();
+//            Imgproc.adaptiveThreshold(dst, bin, 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C,
+//                    Imgproc.THRESH_BINARY, 15, 40);
+//            Log.d(TAG, "Applied adaptive thresholding");
+//            //Save binary image
+//            Bitmap bitmap_binary = Bitmap.createBitmap(bin.cols(), bin.rows(), Bitmap.Config.ARGB_8888);
+//            Utils.matToBitmap(bin, bitmap_binary);
+//            storeImage(bitmap_binary, "image_binary.jpg");
+//            Log.d(TAG, "Stored binary image");
+//            /*Fix image warp*/
+//            //TODO: Algorithm for image warp
+
 
                 /*OCR steps*/
             OCRProcessing mOcr = new OCRProcessing(context);
             mOcr.prepareTesseract();
 
-            String text = mOcr.extractText(bitmap_binary);
+            String text = mOcr.extractText(bitmap_grey);//was binary
             Log.d(TAG, text);
             //Temp code to continue programming and testing
             String temp_text = "Friday, January 26, 2018 2:00pm (30 minutes)";
 
+            //Clean string a bit
+            CustomOCRProcessing cusOCRPross = new CustomOCRProcessing();
+            text = cusOCRPross.cleanOCRString(text);
             //Call CalDictionary class
             CalDictionary dictionary = new CalDictionary(text);
             dictionary.parseText();
