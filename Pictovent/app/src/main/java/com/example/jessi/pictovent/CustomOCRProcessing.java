@@ -39,6 +39,7 @@ public class CustomOCRProcessing {
                 tmpWord = tmpWord.replaceAll("l", "1");
                 tmpWord = tmpWord.replaceAll("Z|z", "2");
                 tmpWord = tmpWord.replaceAll("S|s", "5");
+                tmpWord = tmpWord.replaceAll("O|o", "0");
             }
             cleanWordsList.add(tmpWord);
         }
